@@ -1,4 +1,4 @@
-﻿
+
 string[] y = new string[4];
 string[] x = new string[4];
 Drawer.DrawBoard();
@@ -33,25 +33,25 @@ class MoveAndColor
     {
         Coloring.UnColor(Console.CursorLeft,Console.CursorTop);
         MoveCursor.MoveUp(y);
-        Coloring.Color(Console.CursorLeft%4, Console.CursorTop);
+        Coloring.Color(Console.CursorLeft%y.Length, Console.CursorTop);
     }
     public static void MoveDownAndColor(string[] y)
     {
         Coloring.UnColor(Console.CursorLeft, Console.CursorTop);
         MoveCursor.MoveDown(y);
-        Coloring.Color(Console.CursorLeft%4, Console.CursorTop);
+        Coloring.Color(Console.CursorLeft%y.Length, Console.CursorTop);
     }
     public static void MoveRightAndColor(string[] x)
     {
         Coloring.UnColor(Console.CursorLeft, Console.CursorTop);
         MoveCursor.MoveRight(x);
-        Coloring.Color(Console.CursorLeft%4, Console.CursorTop);
+        Coloring.Color(Console.CursorLeft%x.Length, Console.CursorTop);
     }
     public static void MoveLeftAndColor(string[] x)
     {
         Coloring.UnColor(Console.CursorLeft, Console.CursorTop);
         MoveCursor.MoveLeft(x);
-        Coloring.Color(Console.CursorLeft%4, Console.CursorTop);
+        Coloring.Color(Console.CursorLeft%x.Length, Console.CursorTop);
     }
 }
 class Drawer
