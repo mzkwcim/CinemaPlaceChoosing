@@ -5,7 +5,7 @@ class Loop
     {
         string[] menu = ["Menu", "Wybierz miejsce", "Sprawdź wolne miejsca"];
         string[] y = new string[4];
-        string[] x = new string[4];
+        string[] x = new string[12];
         List<string> seatList = Initializer.SeatListCreater(y, x);
         while (true)
         {
@@ -39,7 +39,7 @@ class StateChanger
             int[] tab = Highlighter.Highlight(x, y, seatList);
             Console.BackgroundColor = ConsoleColor.Black;
             Console.Clear();
-            if(seatList[(tab[1] * x.Length) + tab[0]] == "X")
+            if (seatList[(tab[1] * x.Length) + tab[0]] == "X")
             {
                 Console.WriteLine("Nie możesz wybrać zajętego miejsca\nWciśnij dowolny klawisz aby kontynuować");
                 Console.ReadKey();
@@ -49,7 +49,7 @@ class StateChanger
                 seatList[(tab[1] * x.Length) + tab[0]] = "X";
                 Console.SetCursorPosition(0, 0);
                 Drawer.DrawBoard(seatList);
-                Console.WriteLine($"\nwybrałeś miejsce w rzędzie {tab[1] + 1} miejsce {tab[0]}\nWciśnij dowolny klawisz aby kontynuować");
+                Console.WriteLine($"\nwybrałeś miejsce w rzędzie {tab[1] + 1} kolumna {tab[0]+1}\nWciśnij dowolny klawisz aby kontynuować");
                 Console.ReadKey();
                 koniec = false;
             }
@@ -59,10 +59,10 @@ class StateChanger
 }
 class MoveCursor
 {
-    public static void MoveUp(string[] y) => Console.CursorTop = (Console.CursorTop - 1 < 0) ? y.Length - 1 : (Console.CursorTop - 1) % (y.Length - 1);
-    public static void MoveDown(string[] y) => Console.CursorTop = (Console.CursorTop + 1 > 3) ? 0 : (Console.CursorTop + 1) % y.Length;
-    public static void MoveLeft(string[] x) => Console.CursorLeft = (Console.CursorLeft - 1 < 0) ? x.Length - 1 : Console.CursorLeft - 1;
-    public static void MoveRight(string[] x) => Console.CursorLeft = (Console.CursorLeft + 1 > 3) ? 0 : (Console.CursorLeft + 1) % x.Length;
+    public static void MoveUp(string[] y) => Console.CursorTop = (Console.CursorTop - 1 < 0) ? y.Length - 1 : (Console.CursorTop - 1) % y.Length;
+    public static void MoveDown(string[] y) => Console.CursorTop = (Console.CursorTop + 1 > y.Length-1) ? 0 : (Console.CursorTop + 1) % y.Length;
+    public static void MoveLeft(string[] x) => Console.CursorLeft = (Console.CursorLeft - 1 < 0) ? x.Length + 1 : (Console.CursorLeft - 1 == 4 || Console.CursorLeft - 1 == 9) ? (Console.CursorLeft - 2) % (x.Length+2) : (Console.CursorLeft - 1) % (x.Length + 2);
+    public static void MoveRight(string[] x) => Console.CursorLeft = (Console.CursorLeft + 1 > x.Length+1) ? 0 : (Console.CursorLeft + 1 == 4 || Console.CursorLeft + 1 == 9) ? (Console.CursorLeft + 2) % (x.Length+2) : (Console.CursorLeft + 1) % (x.Length + 2);
 }
 class MoveCursorOnMenu
 {
@@ -86,13 +86,13 @@ class Coloring
     public static void Color(int x, int y, List<string> seatList)
     {
         Console.BackgroundColor = ConsoleColor.DarkBlue;
-        Console.Write(seatList[(y*4)+x]);
+        Console.Write(seatList[(y * seatList.Count/4) + ((x < 4) ? x : (x > 4 && x < 9) ? x-1 : x-2)]);
         Console.SetCursorPosition(x, y);
     }
     public static void UnColor(int x, int y, List<string> seatList)
     {
         Console.BackgroundColor = ConsoleColor.Black;
-        Console.Write(seatList[(y * 4) + x]);
+        Console.Write(seatList[(y * seatList.Count/4) + ((x < 4) ? x : (x > 4 && x < 9) ? x - 1 : x - 2)]);
         Console.SetCursorPosition(x, y);
     }
 }
@@ -102,25 +102,25 @@ class MoveAndColor
     {
         Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveUp(y);
-        Coloring.Color(Console.CursorLeft % y.Length, Console.CursorTop, seatList);
+        Coloring.Color(Console.CursorLeft, Console.CursorTop, seatList);
     }
     public static void MoveDownAndColor(string[] y, List<string> seatList)
     {
         Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveDown(y);
-        Coloring.Color(Console.CursorLeft % y.Length, Console.CursorTop, seatList);
+        Coloring.Color(Console.CursorLeft, Console.CursorTop, seatList);
     }
     public static void MoveRightAndColor(string[] x, List<string> seatList)
     {
         Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveRight(x);
-        Coloring.Color(Console.CursorLeft % x.Length, Console.CursorTop, seatList);
+        Coloring.Color(Console.CursorLeft % (x.Length+2), Console.CursorTop, seatList);
     }
     public static void MoveLeftAndColor(string[] x, List<string> seatList)
     {
         Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveLeft(x);
-        Coloring.Color(Console.CursorLeft % x.Length, Console.CursorTop, seatList);
+        Coloring.Color(Console.CursorLeft % (x.Length+2), Console.CursorTop, seatList);
     }
 }
 class Drawer
@@ -131,7 +131,7 @@ class Drawer
         Console.Clear();
         for (int i = 0; i < SeatList.Count; i++)
         {
-            Console.Write((i % 4 == 3) ? SeatList[i] + "\n" : SeatList[i]);
+            Console.Write((i % 4 == 3) ? (i % 12 == 11)? SeatList[i] + "\n": SeatList[i] + " " : SeatList[i]);
         }
         Console.WriteLine("\nAby wrócić do menu głównego wciśnij dowolny klawisz");
         Console.ReadKey();
@@ -155,7 +155,7 @@ class Highlighter
                 case ConsoleKey.DownArrow: MoveAndColor.MoveDownAndColor(y, seatList); break;
                 case ConsoleKey.RightArrow: MoveAndColor.MoveRightAndColor(x, seatList); break;
                 case ConsoleKey.LeftArrow: MoveAndColor.MoveLeftAndColor(x, seatList); break;
-                case ConsoleKey.Enter: number = [Console.CursorLeft, Console.CursorTop]; break;
+                case ConsoleKey.Enter: number = [(Console.CursorLeft < 4) ? Console.CursorLeft : (Console.CursorLeft > 4 && Console.CursorLeft < 9) ? Console.CursorLeft-1 : Console.CursorLeft-2, Console.CursorTop]; break;
             }
         } while (key != ConsoleKey.Enter);
         return number;
