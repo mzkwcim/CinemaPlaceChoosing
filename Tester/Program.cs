@@ -7,10 +7,13 @@ class Loop
         string[] y = new string[4];
         string[] x = new string[4];
         List<string> seatList = Initializer.SeatListCreater(y, x);
-        switch (MenuHighlight.Highlight(menu))
+        while (true)
         {
-            case 1: StateChanger.Changer(seatList, x, y); break;
-            case 2: Drawer.DrawBoard(seatList); break;
+            switch (MenuHighlight.Highlight(menu))
+            {
+                case 1: seatList = StateChanger.Changer(seatList, x, y); break;
+                case 2: Drawer.DrawBoard(seatList); break;
+            }
         }
     }
 }
@@ -28,14 +31,30 @@ class Initializer
 }
 class StateChanger
 {
-    public static void Changer(List<string> seatList, string[] x, string[] y)
+    public static List<string> Changer(List<string> seatList, string[] x, string[] y)
     {
-        int[] tab = Highlighter.Highlight(x, y, seatList);
-        Console.BackgroundColor = ConsoleColor.Black;
-        Console.Clear();
-        seatList[(tab[1] * x.Length) + tab[0]] = "X";
-        Console.SetCursorPosition(0, 0);
-        Drawer.DrawBoard(seatList);
+        bool koniec = true;
+        do
+        {
+            int[] tab = Highlighter.Highlight(x, y, seatList);
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.Clear();
+            if(seatList[(tab[1] * x.Length) + tab[0]] == "X")
+            {
+                Console.WriteLine("Nie możesz wybrać zajętego miejsca\nWciśnij dowolny klawisz aby kontynuować");
+                Console.ReadKey();
+            }
+            else
+            {
+                seatList[(tab[1] * x.Length) + tab[0]] = "X";
+                Console.SetCursorPosition(0, 0);
+                Drawer.DrawBoard(seatList);
+                Console.WriteLine($"\nwybrałeś miejsce w rzędzie {tab[1] + 1} miejsce {tab[0]}\nWciśnij dowolny klawisz aby kontynuować");
+                Console.ReadKey();
+                koniec = false;
+            }
+        } while (koniec);
+        return seatList;
     }
 }
 class MoveCursor
@@ -64,44 +83,44 @@ class MoveCursorOnMenu
 }
 class Coloring
 {
-    public static void Color(int left, int right)
+    public static void Color(int x, int y, List<string> seatList)
     {
         Console.BackgroundColor = ConsoleColor.DarkBlue;
-        Console.Write("O");
-        Console.SetCursorPosition(left, right);
+        Console.Write(seatList[(y*4)+x]);
+        Console.SetCursorPosition(x, y);
     }
-    public static void UnColor(int left, int right)
+    public static void UnColor(int x, int y, List<string> seatList)
     {
         Console.BackgroundColor = ConsoleColor.Black;
-        Console.Write("O");
-        Console.SetCursorPosition(left, right);
+        Console.Write(seatList[(y * 4) + x]);
+        Console.SetCursorPosition(x, y);
     }
 }
 class MoveAndColor
 {
-    public static void MoveUpAndColor(string[] y)
+    public static void MoveUpAndColor(string[] y, List<string> seatList)
     {
-        Coloring.UnColor(Console.CursorLeft, Console.CursorTop);
+        Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveUp(y);
-        Coloring.Color(Console.CursorLeft % y.Length, Console.CursorTop);
+        Coloring.Color(Console.CursorLeft % y.Length, Console.CursorTop, seatList);
     }
-    public static void MoveDownAndColor(string[] y)
+    public static void MoveDownAndColor(string[] y, List<string> seatList)
     {
-        Coloring.UnColor(Console.CursorLeft, Console.CursorTop);
+        Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveDown(y);
-        Coloring.Color(Console.CursorLeft % y.Length, Console.CursorTop);
+        Coloring.Color(Console.CursorLeft % y.Length, Console.CursorTop, seatList);
     }
-    public static void MoveRightAndColor(string[] x)
+    public static void MoveRightAndColor(string[] x, List<string> seatList)
     {
-        Coloring.UnColor(Console.CursorLeft, Console.CursorTop);
+        Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveRight(x);
-        Coloring.Color(Console.CursorLeft % x.Length, Console.CursorTop);
+        Coloring.Color(Console.CursorLeft % x.Length, Console.CursorTop, seatList);
     }
-    public static void MoveLeftAndColor(string[] x)
+    public static void MoveLeftAndColor(string[] x, List<string> seatList)
     {
-        Coloring.UnColor(Console.CursorLeft, Console.CursorTop);
+        Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveLeft(x);
-        Coloring.Color(Console.CursorLeft % x.Length, Console.CursorTop);
+        Coloring.Color(Console.CursorLeft % x.Length, Console.CursorTop, seatList);
     }
 }
 class Drawer
@@ -114,6 +133,8 @@ class Drawer
         {
             Console.Write((i % 4 == 3) ? SeatList[i] + "\n" : SeatList[i]);
         }
+        Console.WriteLine("\nAby wrócić do menu głównego wciśnij dowolny klawisz");
+        Console.ReadKey();
     }
 }
 class Highlighter
@@ -130,10 +151,10 @@ class Highlighter
             key = Console.ReadKey(true).Key;
             switch (key)
             {
-                case ConsoleKey.UpArrow: MoveAndColor.MoveUpAndColor(y); break;
-                case ConsoleKey.DownArrow: MoveAndColor.MoveDownAndColor(y); break;
-                case ConsoleKey.RightArrow: MoveAndColor.MoveRightAndColor(x); break;
-                case ConsoleKey.LeftArrow: MoveAndColor.MoveLeftAndColor(x); break;
+                case ConsoleKey.UpArrow: MoveAndColor.MoveUpAndColor(y, seatList); break;
+                case ConsoleKey.DownArrow: MoveAndColor.MoveDownAndColor(y, seatList); break;
+                case ConsoleKey.RightArrow: MoveAndColor.MoveRightAndColor(x, seatList); break;
+                case ConsoleKey.LeftArrow: MoveAndColor.MoveLeftAndColor(x, seatList); break;
                 case ConsoleKey.Enter: number = [Console.CursorLeft, Console.CursorTop]; break;
             }
         } while (key != ConsoleKey.Enter);
