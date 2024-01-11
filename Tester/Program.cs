@@ -11,6 +11,7 @@ class Loop
         {
             switch (MenuHighlight.Highlight(menu))
             {
+                case 0: break;
                 case 1: seatList = StateChanger.Changer(seatList, x, y, "X"); break;
                 case 2:
                     Drawer.DrawBoard(seatList);
@@ -58,22 +59,29 @@ class StateChanger
         bool koniec = true;
         do
         {
-            int[] tab = Highlighter.Highlight(x, y, seatList);
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.Clear();
-            if (seatList[(tab[1] * x.Length) + tab[0]] == sign)
+            try
             {
-                Console.WriteLine((sign == "X") ? "Nie możesz wybrać zajętego miejsca\nWciśnij dowolny klawisz aby kontynuować" : "Nie możesz odwołać rezerwacji wolnego miejsca");
-                Console.ReadKey();
+                int[] tab = Highlighter.Highlight(x, y, seatList);
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.Clear();
+                if (seatList[(tab[1] * x.Length) + tab[0]] == sign)
+                {
+                    Console.WriteLine((sign == "X") ? "Nie możesz wybrać zajętego miejsca\nWciśnij dowolny klawisz aby kontynuować" : "Nie możesz odwołać rezerwacji wolnego miejsca");
+                    Console.ReadKey();
+                }
+                else
+                {
+                    seatList[(tab[1] * x.Length) + tab[0]] = sign;
+                    Console.SetCursorPosition(0, 0);
+                    Drawer.DrawBoard(seatList);
+                    Console.WriteLine((sign == "X") ? $"\nwybrałeś miejsce w rzędzie {tab[1] + 1} kolumna {tab[0] + 1}" : $"Odwołałeś rezerwacje miejsca  w rzędzie {tab[1] + 1} kolumnie {tab[0] + 1}");
+                    Console.WriteLine("Aby wrócić do menu głównego wciśnij dowolny klawisz");
+                    Console.ReadKey();
+                    koniec = false;
+                }
             }
-            else
+            catch
             {
-                seatList[(tab[1] * x.Length) + tab[0]] = sign;
-                Console.SetCursorPosition(0, 0);
-                Drawer.DrawBoard(seatList);
-                Console.WriteLine((sign == "X") ? $"\nwybrałeś miejsce w rzędzie {tab[1] + 1} kolumna {tab[0] + 1}" : $"Odwołałeś rezerwacje miejsca  w rzędzie {tab[1] + 1} kolumnie {tab[0] + 1}");
-                Console.WriteLine("Aby wrócić do menu głównego wciśnij dowolny klawisz");
-                Console.ReadKey();
                 koniec = false;
             }
         } while (koniec);
@@ -162,10 +170,11 @@ class Highlighter
 {
     public static int[] Highlight(string[] x, string[] y, List<string> seatList)
     {
-        int[] number = new int[2];
+        int[] number = [0, 0];
         Console.Clear();
         Drawer.DrawBoard(seatList);
-        Console.CursorTop = 0;
+        Console.WriteLine("\nAby wrócić do menu głównego wciśnij escape");
+        Console.SetCursorPosition(0, 0);
         ConsoleKey key;
         do
         {
@@ -177,8 +186,9 @@ class Highlighter
                 case ConsoleKey.RightArrow: MoveAndColor.MoveRightAndColor(x, seatList); break;
                 case ConsoleKey.LeftArrow: MoveAndColor.MoveLeftAndColor(x, seatList); break;
                 case ConsoleKey.Enter: number = [(Console.CursorLeft < 4) ? Console.CursorLeft : (Console.CursorLeft > 4 && Console.CursorLeft < 9) ? Console.CursorLeft - 1 : Console.CursorLeft - 2, Console.CursorTop]; break;
+                case ConsoleKey.Escape: number = [-1,-1]; break;
             }
-        } while (key != ConsoleKey.Enter);
+        } while (key != ConsoleKey.Enter && key != ConsoleKey.Escape);
         return number;
     }
 }
