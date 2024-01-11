@@ -3,7 +3,7 @@ class Loop
 {
     public static void MainLoop()
     {
-        string[] menu = ["Menu", "Wybierz miejsce", "Sprawdź wolne miejsca"];
+        string[] menu = ["Menu", "Wybierz miejsce", "Sprawdź wolne miejsca", "Odwołaj rezerwacje"];
         string[] y = new string[4];
         string[] x = new string[12];
         List<string> seatList = Initializer.SeatListCreater(y, x);
@@ -11,8 +11,13 @@ class Loop
         {
             switch (MenuHighlight.Highlight(menu))
             {
-                case 1: seatList = StateChanger.Changer(seatList, x, y); break;
-                case 2: Drawer.DrawBoard(seatList); break;
+                case 1: seatList = StateChanger.Changer(seatList, x, y, "X"); break;
+                case 2:
+                    Drawer.DrawBoard(seatList);
+                    Console.WriteLine("\nAby wrócić do menu głównego wciśnij dowolny klawisz");
+                    Console.ReadKey();
+                    break;
+                case 3: seatList = StateChanger.Changer(seatList, x, y, "O"); break;
             }
         }
     }
@@ -31,7 +36,7 @@ class Initializer
 }
 class StateChanger
 {
-    public static List<string> Changer(List<string> seatList, string[] x, string[] y)
+    public static List<string> Changer(List<string> seatList, string[] x, string[] y, string sign)
     {
         bool koniec = true;
         do
@@ -39,17 +44,18 @@ class StateChanger
             int[] tab = Highlighter.Highlight(x, y, seatList);
             Console.BackgroundColor = ConsoleColor.Black;
             Console.Clear();
-            if (seatList[(tab[1] * x.Length) + tab[0]] == "X")
+            if (seatList[(tab[1] * x.Length) + tab[0]] == sign)
             {
-                Console.WriteLine("Nie możesz wybrać zajętego miejsca\nWciśnij dowolny klawisz aby kontynuować");
+                Console.WriteLine((sign == "X") ? "Nie możesz wybrać zajętego miejsca\nWciśnij dowolny klawisz aby kontynuować" : "Nie możesz odwołać rezerwacji wolnego miejsca");
                 Console.ReadKey();
             }
             else
             {
-                seatList[(tab[1] * x.Length) + tab[0]] = "X";
+                seatList[(tab[1] * x.Length) + tab[0]] = sign;
                 Console.SetCursorPosition(0, 0);
                 Drawer.DrawBoard(seatList);
-                Console.WriteLine($"\nwybrałeś miejsce w rzędzie {tab[1] + 1} kolumna {tab[0]+1}\nWciśnij dowolny klawisz aby kontynuować");
+                Console.WriteLine((sign == "X") ? $"\nwybrałeś miejsce w rzędzie {tab[1] + 1} kolumna {tab[0] + 1}" : $"Odwołałeś rezerwacje miejsca  w rzędzie {tab[1] + 1} kolumnie {tab[0] + 1}");
+                Console.WriteLine("Aby wrócić do menu głównego wciśnij dowolny klawisz");
                 Console.ReadKey();
                 koniec = false;
             }
@@ -60,9 +66,9 @@ class StateChanger
 class MoveCursor
 {
     public static void MoveUp(string[] y) => Console.CursorTop = (Console.CursorTop - 1 < 0) ? y.Length - 1 : (Console.CursorTop - 1) % y.Length;
-    public static void MoveDown(string[] y) => Console.CursorTop = (Console.CursorTop + 1 > y.Length-1) ? 0 : (Console.CursorTop + 1) % y.Length;
-    public static void MoveLeft(string[] x) => Console.CursorLeft = (Console.CursorLeft - 1 < 0) ? x.Length + 1 : (Console.CursorLeft - 1 == 4 || Console.CursorLeft - 1 == 9) ? (Console.CursorLeft - 2) % (x.Length+2) : (Console.CursorLeft - 1) % (x.Length + 2);
-    public static void MoveRight(string[] x) => Console.CursorLeft = (Console.CursorLeft + 1 > x.Length+1) ? 0 : (Console.CursorLeft + 1 == 4 || Console.CursorLeft + 1 == 9) ? (Console.CursorLeft + 2) % (x.Length+2) : (Console.CursorLeft + 1) % (x.Length + 2);
+    public static void MoveDown(string[] y) => Console.CursorTop = (Console.CursorTop + 1 > y.Length - 1) ? 0 : (Console.CursorTop + 1) % y.Length;
+    public static void MoveLeft(string[] x) => Console.CursorLeft = (Console.CursorLeft - 1 < 0) ? x.Length + 1 : (Console.CursorLeft - 1 == 4 || Console.CursorLeft - 1 == 9) ? (Console.CursorLeft - 2) % (x.Length + 2) : (Console.CursorLeft - 1) % (x.Length + 2);
+    public static void MoveRight(string[] x) => Console.CursorLeft = (Console.CursorLeft + 1 > x.Length + 1) ? 0 : (Console.CursorLeft + 1 == 4 || Console.CursorLeft + 1 == 9) ? (Console.CursorLeft + 2) % (x.Length + 2) : (Console.CursorLeft + 1) % (x.Length + 2);
 }
 class MoveCursorOnMenu
 {
@@ -86,13 +92,13 @@ class Coloring
     public static void Color(int x, int y, List<string> seatList)
     {
         Console.BackgroundColor = ConsoleColor.DarkBlue;
-        Console.Write(seatList[(y * seatList.Count/4) + ((x < 4) ? x : (x > 4 && x < 9) ? x-1 : x-2)]);
+        Console.Write(seatList[(y * seatList.Count / 4) + ((x < 4) ? x : (x > 4 && x < 9) ? x - 1 : x - 2)]);
         Console.SetCursorPosition(x, y);
     }
     public static void UnColor(int x, int y, List<string> seatList)
     {
         Console.BackgroundColor = ConsoleColor.Black;
-        Console.Write(seatList[(y * seatList.Count/4) + ((x < 4) ? x : (x > 4 && x < 9) ? x - 1 : x - 2)]);
+        Console.Write(seatList[(y * seatList.Count / 4) + ((x < 4) ? x : (x > 4 && x < 9) ? x - 1 : x - 2)]);
         Console.SetCursorPosition(x, y);
     }
 }
@@ -114,13 +120,13 @@ class MoveAndColor
     {
         Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveRight(x);
-        Coloring.Color(Console.CursorLeft % (x.Length+2), Console.CursorTop, seatList);
+        Coloring.Color(Console.CursorLeft % (x.Length + 2), Console.CursorTop, seatList);
     }
     public static void MoveLeftAndColor(string[] x, List<string> seatList)
     {
         Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveLeft(x);
-        Coloring.Color(Console.CursorLeft % (x.Length+2), Console.CursorTop, seatList);
+        Coloring.Color(Console.CursorLeft % (x.Length + 2), Console.CursorTop, seatList);
     }
 }
 class Drawer
@@ -131,10 +137,8 @@ class Drawer
         Console.Clear();
         for (int i = 0; i < SeatList.Count; i++)
         {
-            Console.Write((i % 4 == 3) ? (i % 12 == 11)? SeatList[i] + "\n": SeatList[i] + " " : SeatList[i]);
+            Console.Write((i % 4 == 3) ? (i % 12 == 11) ? SeatList[i] + "\n" : SeatList[i] + " " : SeatList[i]);
         }
-        Console.WriteLine("\nAby wrócić do menu głównego wciśnij dowolny klawisz");
-        Console.ReadKey();
     }
 }
 class Highlighter
@@ -155,7 +159,7 @@ class Highlighter
                 case ConsoleKey.DownArrow: MoveAndColor.MoveDownAndColor(y, seatList); break;
                 case ConsoleKey.RightArrow: MoveAndColor.MoveRightAndColor(x, seatList); break;
                 case ConsoleKey.LeftArrow: MoveAndColor.MoveLeftAndColor(x, seatList); break;
-                case ConsoleKey.Enter: number = [(Console.CursorLeft < 4) ? Console.CursorLeft : (Console.CursorLeft > 4 && Console.CursorLeft < 9) ? Console.CursorLeft-1 : Console.CursorLeft-2, Console.CursorTop]; break;
+                case ConsoleKey.Enter: number = [(Console.CursorLeft < 4) ? Console.CursorLeft : (Console.CursorLeft > 4 && Console.CursorLeft < 9) ? Console.CursorLeft - 1 : Console.CursorLeft - 2, Console.CursorTop]; break;
             }
         } while (key != ConsoleKey.Enter);
         return number;
