@@ -3,7 +3,7 @@ class Loop
 {
     public static void MainLoop()
     {
-        string[] menu = ["Menu", "Wybierz miejsce", "Sprawdź wolne miejsca", "Odwołaj rezerwacje"];
+        string[] menu = ["Menu", "Wybierz miejsce", "Sprawdź wolne miejsca", "Odwołaj rezerwacje", "Sprawdź liczbę wolnych miejsc"];
         string[] y = new string[4];
         string[] x = new string[12];
         List<string> seatList = Initializer.SeatListCreater(y, x);
@@ -18,8 +18,25 @@ class Loop
                     Console.ReadKey();
                     break;
                 case 3: seatList = StateChanger.Changer(seatList, x, y, "O"); break;
+                case 4: FreeSeatCounter.Counter(seatList); break;
             }
         }
+    }
+}
+class FreeSeatCounter
+{
+    public static void Counter(List<string> seatList)
+    {
+        Console.BackgroundColor = ConsoleColor.Black;
+        Console.Clear();
+        int adder = 0;
+        for (int i = 0; i < seatList.Count; i++)
+        {
+            adder += (seatList[i] == "O") ? 1 : 0;
+        }
+        Console.WriteLine($"liczba wolnych miejsc {adder}\n\nkliknij dowolny przycisk, aby wrócić do menu głównego");
+        Console.ReadKey();
+        Console.Clear();
     }
 }
 class Initializer
