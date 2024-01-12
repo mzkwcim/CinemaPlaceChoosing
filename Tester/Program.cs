@@ -1,13 +1,16 @@
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 Loop.MainLoop();
 class Loop
 {
     public static void MainLoop()
     {
-        string[] menu = ["Menu", "Wybierz miejsce", "Sprawdź wolne miejsca", "Odwołaj rezerwacje", "Sprawdź liczbę wolnych miejsc"];
+        string[] menu = ["Menu", "Wybierz miejsce", "Sprawdź wolne miejsca", "Odwołaj rezerwacje", "Sprawdź liczbę wolnych miejsc", "Wyjdź z kina"];
         string[] y = new string[4];
         string[] x = new string[12];
         List<string> seatList = Initializer.SeatListCreater(y, x);
-        while (true)
+        bool koniec = true;
+        while (koniec)
         {
             switch (MenuHighlight.Highlight(menu))
             {
@@ -20,9 +23,77 @@ class Loop
                     break;
                 case 3: seatList = StateChanger.Changer(seatList, x, y, "O"); break;
                 case 4: FreeSeatCounter.Counter(seatList); break;
+                case 5: koniec = Exit.ExitACinema();  break;
             }
         }
     }
+}
+class Exit
+{
+    public static bool ExitACinema()
+    {
+        Console.BackgroundColor = ConsoleColor.Black;
+        Console.Clear();
+        if (YesNo() == 1)
+        {
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.Clear();
+            return true;
+        }
+        else
+        {
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.Clear();
+            Console.WriteLine("Dziękujemy za wizytę w kinie");
+            return false;
+        }
+    }
+    public static int YesNo()
+    {
+        int number = 1;
+        Console.WriteLine("Czy na pewno chcesz wyjść z kina?");
+        string[] response = ["Nie", "Tak"];
+        Console.WriteLine($"{response[0]}\n{response[1]}");
+        ConsoleKey key;
+        Console.SetCursorPosition(0, 1);
+        do
+        {
+            key = Console.ReadKey(true).Key;
+            switch (key)
+            {
+                case ConsoleKey.UpArrow: MoveUpAndColor(response) ; break;
+                case ConsoleKey.DownArrow: MoveDownAndColor(response); break;
+                case ConsoleKey.Enter: number = Console.CursorTop; break;
+            }
+        } while (key != ConsoleKey.Enter);
+        return number;
+    }
+    public static void Color(string[] menu)
+    {
+        Console.SetCursorPosition(0, Console.CursorTop);
+        Console.BackgroundColor = ConsoleColor.DarkBlue;
+        Console.Write(menu[Console.CursorTop-1]);
+    }
+    public static void UnColor(string[] menu)
+    {
+        Console.SetCursorPosition(0, Console.CursorTop);
+        Console.BackgroundColor = ConsoleColor.Black;
+        Console.Write(menu[Console.CursorTop-1]);
+    }
+    public static void MoveUpAndColor(string[] menu )
+    {
+        UnColor(menu);
+        MoveUp(menu.Length);
+        Color(menu);
+    }
+    public static void MoveDownAndColor(string[] menu)
+    {
+        UnColor(menu);
+        MoveDown(menu.Length);
+        Color(menu);
+    }
+    public static void MoveUp(int y) => Console.CursorTop = (Console.CursorTop - 1 == 0) ? 2 : 1;
+    public static void MoveDown(int y) => Console.CursorTop = (Console.CursorTop + 1 == 3) ? 1 : 2;
 }
 class FreeSeatCounter
 {
@@ -90,14 +161,14 @@ class StateChanger
 }
 class MoveCursor
 {
-    public static void MoveUp(string[] y) => Console.CursorTop = (Console.CursorTop - 1 < 0) ? y.Length - 1 : (Console.CursorTop - 1) % y.Length;
-    public static void MoveDown(string[] y) => Console.CursorTop = (Console.CursorTop + 1 > y.Length - 1) ? 0 : (Console.CursorTop + 1) % y.Length;
-    public static void MoveLeft(string[] x) => Console.CursorLeft = (Console.CursorLeft - 1 < 0) ? x.Length + 1 : (Console.CursorLeft - 1 == 4 || Console.CursorLeft - 1 == 9) ? (Console.CursorLeft - 2) % (x.Length + 2) : (Console.CursorLeft - 1) % (x.Length + 2);
-    public static void MoveRight(string[] x) => Console.CursorLeft = (Console.CursorLeft + 1 > x.Length + 1) ? 0 : (Console.CursorLeft + 1 == 4 || Console.CursorLeft + 1 == 9) ? (Console.CursorLeft + 2) % (x.Length + 2) : (Console.CursorLeft + 1) % (x.Length + 2);
+    public static void MoveUp(int y) => Console.CursorTop = (Console.CursorTop - 1 < 0) ? y - 1 : (Console.CursorTop - 1) % y;
+    public static void MoveDown(int y) => Console.CursorTop = (Console.CursorTop + 1 > y - 1) ? 0 : (Console.CursorTop + 1) % y;
+    public static void MoveLeft(int x) => Console.CursorLeft = (Console.CursorLeft - 1 < 0) ? x + 1 : (Console.CursorLeft - 1 == 4 || Console.CursorLeft - 1 == 9) ? (Console.CursorLeft - 2) % (x + 2) : (Console.CursorLeft - 1) % (x + 2);
+    public static void MoveRight(int x) => Console.CursorLeft = (Console.CursorLeft + 1 > x + 1) ? 0 : (Console.CursorLeft + 1 == 4 || Console.CursorLeft + 1 == 9) ? (Console.CursorLeft + 2) % (x + 2) : (Console.CursorLeft + 1) % (x + 2);
 }
 class MoveCursorOnMenu
 {
-    public static void MoveUp(string[] menu) => Console.CursorTop = (Console.CursorTop - 1 < 1) ? menu.Length - 1 : (Console.CursorTop - 1) % menu.Length;
+    public static void MoveUp(string[] menu) => Console.CursorTop = (Console.CursorTop - 1 < 1) ? menu.Length-1 : (Console.CursorTop - 1) % menu.Length;
     public static void MoveDown(string[] menu) => Console.CursorTop = ((Console.CursorTop + 1) % menu.Length == 0) ? 1 : (Console.CursorTop + 1) % menu.Length;
     public static void MoveUpAndColor(string[] menu)
     {
@@ -129,29 +200,29 @@ class Coloring
 }
 class MoveAndColor
 {
-    public static void MoveUpAndColor(string[] y, List<string> seatList)
+    public static void MoveUpAndColor(int y, List<string> seatList)
     {
         Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveUp(y);
         Coloring.Color(Console.CursorLeft, Console.CursorTop, seatList);
     }
-    public static void MoveDownAndColor(string[] y, List<string> seatList)
+    public static void MoveDownAndColor(int y, List<string> seatList)
     {
         Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveDown(y);
         Coloring.Color(Console.CursorLeft, Console.CursorTop, seatList);
     }
-    public static void MoveRightAndColor(string[] x, List<string> seatList)
+    public static void MoveRightAndColor(int x, List<string> seatList)
     {
         Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveRight(x);
-        Coloring.Color(Console.CursorLeft % (x.Length + 2), Console.CursorTop, seatList);
+        Coloring.Color(Console.CursorLeft % (x + 2), Console.CursorTop, seatList);
     }
-    public static void MoveLeftAndColor(string[] x, List<string> seatList)
+    public static void MoveLeftAndColor(int x, List<string> seatList)
     {
         Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveLeft(x);
-        Coloring.Color(Console.CursorLeft % (x.Length + 2), Console.CursorTop, seatList);
+        Coloring.Color(Console.CursorLeft % (x + 2), Console.CursorTop, seatList);
     }
 }
 class Drawer
@@ -181,12 +252,12 @@ class Highlighter
             key = Console.ReadKey(true).Key;
             switch (key)
             {
-                case ConsoleKey.UpArrow: MoveAndColor.MoveUpAndColor(y, seatList); break;
-                case ConsoleKey.DownArrow: MoveAndColor.MoveDownAndColor(y, seatList); break;
-                case ConsoleKey.RightArrow: MoveAndColor.MoveRightAndColor(x, seatList); break;
-                case ConsoleKey.LeftArrow: MoveAndColor.MoveLeftAndColor(x, seatList); break;
+                case ConsoleKey.UpArrow: MoveAndColor.MoveUpAndColor(y.Length, seatList); break;
+                case ConsoleKey.DownArrow: MoveAndColor.MoveDownAndColor(y.Length, seatList); break;
+                case ConsoleKey.RightArrow: MoveAndColor.MoveRightAndColor(x.Length, seatList); break;
+                case ConsoleKey.LeftArrow: MoveAndColor.MoveLeftAndColor(x.Length, seatList); break;
                 case ConsoleKey.Enter: number = [(Console.CursorLeft < 4) ? Console.CursorLeft : (Console.CursorLeft > 4 && Console.CursorLeft < 9) ? Console.CursorLeft - 1 : Console.CursorLeft - 2, Console.CursorTop]; break;
-                case ConsoleKey.Escape: number = [-1,-1]; break;
+                case ConsoleKey.Escape: number = [-1, -1]; break;
             }
         } while (key != ConsoleKey.Enter && key != ConsoleKey.Escape);
         return number;
