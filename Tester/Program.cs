@@ -1,13 +1,12 @@
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 Loop.MainLoop();
 class Loop
 {
+    public static string[] y = new string[6];
+    public static string[] x = new string[12];
     public static void MainLoop()
     {
         string[] menu = ["Menu", "Wybierz miejsce", "Sprawdź wolne miejsca", "Odwołaj rezerwacje", "Sprawdź liczbę wolnych miejsc", "Wyjdź z kina"];
-        string[] y = new string[4];
-        string[] x = new string[12];
         List<string> seatList = Initializer.SeatListCreater(y, x);
         bool koniec = true;
         while (koniec)
@@ -15,38 +14,42 @@ class Loop
             switch (MenuHighlight.Highlight(menu))
             {
                 case 0: break;
-                case 1: seatList = StateChanger.Changer(seatList, x, y, "X"); break;
-                case 2:
-                    Drawer.DrawBoard(seatList);
-                    Console.WriteLine("\nAby wrócić do menu głównego wciśnij dowolny klawisz");
-                    Console.ReadKey();
-                    break;
-                case 3: seatList = StateChanger.Changer(seatList, x, y, "O"); break;
+                case 1: seatList = StateChanger.Changer(seatList, "X"); break;
+                case 2:DrawBoardHelper(seatList); break;
+                case 3: seatList = StateChanger.Changer(seatList, "O"); break;
                 case 4: FreeSeatCounter.Counter(seatList); break;
                 case 5: koniec = Exit.ExitACinema();  break;
             }
         }
+    }
+    public static void DrawBoardHelper(List<string> seatList)
+    {
+        Drawer.DrawBoard(seatList);
+        Console.WriteLine("\nAby wrócić do menu głównego wciśnij dowolny klawisz");
+        Console.ReadKey();
     }
 }
 class Exit
 {
     public static bool ExitACinema()
     {
-        Console.BackgroundColor = ConsoleColor.Black;
-        Console.Clear();
+        BlackAndClear();
         if (YesNo() == 1)
         {
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.Clear();
+            BlackAndClear();
             return true;
         }
         else
         {
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.Clear();
+            BlackAndClear();
             Console.WriteLine("Dziękujemy za wizytę w kinie");
             return false;
         }
+    }
+    public static void BlackAndClear()
+    {
+        Console.BackgroundColor = ConsoleColor.Black;
+        Console.Clear();
     }
     public static int YesNo()
     {
@@ -99,8 +102,7 @@ class FreeSeatCounter
 {
     public static void Counter(List<string> seatList)
     {
-        Console.BackgroundColor = ConsoleColor.Black;
-        Console.Clear();
+        Exit.BlackAndClear();
         int adder = 0;
         for (int i = 0; i < seatList.Count; i++)
         {
@@ -125,24 +127,23 @@ class Initializer
 }
 class StateChanger
 {
-    public static List<string> Changer(List<string> seatList, string[] x, string[] y, string sign)
+    public static List<string> Changer(List<string> seatList, string sign)
     {
         bool koniec = true;
         do
         {
             try
             {
-                int[] tab = Highlighter.Highlight(x, y, seatList);
-                Console.BackgroundColor = ConsoleColor.Black;
-                Console.Clear();
-                if (seatList[(tab[1] * x.Length) + tab[0]] == sign)
+                int[] tab = Highlighter.Highlight(seatList);
+                Exit.BlackAndClear();
+                if (seatList[(tab[1] * Loop.x.Length) + tab[0]] == sign)
                 {
                     Console.WriteLine((sign == "X") ? "Nie możesz wybrać zajętego miejsca\nWciśnij dowolny klawisz aby kontynuować" : "Nie możesz odwołać rezerwacji wolnego miejsca");
                     Console.ReadKey();
                 }
                 else
                 {
-                    seatList[(tab[1] * x.Length) + tab[0]] = sign;
+                    seatList[(tab[1] * Loop.x.Length) + tab[0]] = sign;
                     Console.SetCursorPosition(0, 0);
                     Drawer.DrawBoard(seatList);
                     Console.WriteLine((sign == "X") ? $"\nwybrałeś miejsce w rzędzie {tab[1] + 1} kolumna {tab[0] + 1}" : $"Odwołałeś rezerwacje miejsca  w rzędzie {tab[1] + 1} kolumnie {tab[0] + 1}");
@@ -161,8 +162,8 @@ class StateChanger
 }
 class MoveCursor
 {
-    public static void MoveUp(int y) => Console.CursorTop = (Console.CursorTop - 1 < 0) ? y - 1 : (Console.CursorTop - 1) % y;
-    public static void MoveDown(int y) => Console.CursorTop = (Console.CursorTop + 1 > y - 1) ? 0 : (Console.CursorTop + 1) % y;
+    public static void MoveUp(int y) => Console.CursorTop = (Console.CursorTop - 1 < 0) ? (y - 1) : (Console.CursorTop - 1) % y;
+    public static void MoveDown(int y) => Console.CursorTop = (Console.CursorTop + 1 > y) ? 0 : (Console.CursorTop + 1) % y;
     public static void MoveLeft(int x) => Console.CursorLeft = (Console.CursorLeft - 1 < 0) ? x + 1 : (Console.CursorLeft - 1 == 4 || Console.CursorLeft - 1 == 9) ? (Console.CursorLeft - 2) % (x + 2) : (Console.CursorLeft - 1) % (x + 2);
     public static void MoveRight(int x) => Console.CursorLeft = (Console.CursorLeft + 1 > x + 1) ? 0 : (Console.CursorLeft + 1 == 4 || Console.CursorLeft + 1 == 9) ? (Console.CursorLeft + 2) % (x + 2) : (Console.CursorLeft + 1) % (x + 2);
 }
@@ -183,18 +184,18 @@ class MoveCursorOnMenu
         MenuHighlight.Color(menu);
     }
 }
-class Coloring
+class BoardColoring
 {
     public static void Color(int x, int y, List<string> seatList)
     {
         Console.BackgroundColor = ConsoleColor.DarkBlue;
-        Console.Write(seatList[(y * seatList.Count / 4) + ((x < 4) ? x : (x > 4 && x < 9) ? x - 1 : x - 2)]);
+        Console.Write(seatList[(y * seatList.Count / Loop.y.Length) + ((x < 4) ? x : (x > 4 && x < 9) ? x - 1 : x - 2)]);
         Console.SetCursorPosition(x, y);
     }
     public static void UnColor(int x, int y, List<string> seatList)
     {
         Console.BackgroundColor = ConsoleColor.Black;
-        Console.Write(seatList[(y * seatList.Count / 4) + ((x < 4) ? x : (x > 4 && x < 9) ? x - 1 : x - 2)]);
+        Console.Write(seatList[(y * seatList.Count / Loop.y.Length) + ((x < 4) ? x : (x > 4 && x < 9) ? x - 1 : x - 2)]);
         Console.SetCursorPosition(x, y);
     }
 }
@@ -202,35 +203,34 @@ class MoveAndColor
 {
     public static void MoveUpAndColor(int y, List<string> seatList)
     {
-        Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
+        BoardColoring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveUp(y);
-        Coloring.Color(Console.CursorLeft, Console.CursorTop, seatList);
+        BoardColoring.Color(Console.CursorLeft, Console.CursorTop, seatList);
     }
     public static void MoveDownAndColor(int y, List<string> seatList)
     {
-        Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
+        BoardColoring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveDown(y);
-        Coloring.Color(Console.CursorLeft, Console.CursorTop, seatList);
+        BoardColoring.Color(Console.CursorLeft, Console.CursorTop, seatList);
     }
     public static void MoveRightAndColor(int x, List<string> seatList)
     {
-        Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
+        BoardColoring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveRight(x);
-        Coloring.Color(Console.CursorLeft % (x + 2), Console.CursorTop, seatList);
+        BoardColoring.Color(Console.CursorLeft % (x + 2), Console.CursorTop, seatList);
     }
     public static void MoveLeftAndColor(int x, List<string> seatList)
     {
-        Coloring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
+        BoardColoring.UnColor(Console.CursorLeft, Console.CursorTop, seatList);
         MoveCursor.MoveLeft(x);
-        Coloring.Color(Console.CursorLeft % (x + 2), Console.CursorTop, seatList);
+        BoardColoring.Color(Console.CursorLeft % (x + 2), Console.CursorTop, seatList);
     }
 }
 class Drawer
 {
     public static void DrawBoard(List<string> SeatList)
     {
-        Console.BackgroundColor = ConsoleColor.Black;
-        Console.Clear();
+        Exit.BlackAndClear();
         for (int i = 0; i < SeatList.Count; i++)
         {
             Console.Write((i % 4 == 3) ? (i % 12 == 11) ? SeatList[i] + "\n" : SeatList[i] + " " : SeatList[i]);
@@ -239,7 +239,7 @@ class Drawer
 }
 class Highlighter
 {
-    public static int[] Highlight(string[] x, string[] y, List<string> seatList)
+    public static int[] Highlight(List<string> seatList)
     {
         int[] number = [0, 0];
         Console.Clear();
@@ -252,10 +252,10 @@ class Highlighter
             key = Console.ReadKey(true).Key;
             switch (key)
             {
-                case ConsoleKey.UpArrow: MoveAndColor.MoveUpAndColor(y.Length, seatList); break;
-                case ConsoleKey.DownArrow: MoveAndColor.MoveDownAndColor(y.Length, seatList); break;
-                case ConsoleKey.RightArrow: MoveAndColor.MoveRightAndColor(x.Length, seatList); break;
-                case ConsoleKey.LeftArrow: MoveAndColor.MoveLeftAndColor(x.Length, seatList); break;
+                case ConsoleKey.UpArrow: MoveAndColor.MoveUpAndColor(Loop.y.Length, seatList); break;
+                case ConsoleKey.DownArrow: MoveAndColor.MoveDownAndColor(Loop.y.Length, seatList); break;
+                case ConsoleKey.RightArrow: MoveAndColor.MoveRightAndColor(Loop.x.Length, seatList); break;
+                case ConsoleKey.LeftArrow: MoveAndColor.MoveLeftAndColor(Loop.x.Length, seatList); break;
                 case ConsoleKey.Enter: number = [(Console.CursorLeft < 4) ? Console.CursorLeft : (Console.CursorLeft > 4 && Console.CursorLeft < 9) ? Console.CursorLeft - 1 : Console.CursorLeft - 2, Console.CursorTop]; break;
                 case ConsoleKey.Escape: number = [-1, -1]; break;
             }
